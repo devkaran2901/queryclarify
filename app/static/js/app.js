@@ -5,15 +5,35 @@ document.addEventListener('DOMContentLoaded', () => {
   loadChats();
   loadDBSchema();
 
-  // Attach explicit fallback click event listeners
+  // Attach event listeners to UI elements
   const newChatBtn = document.getElementById('newChatBtn');
   if (newChatBtn) newChatBtn.addEventListener('click', createNewChat);
 
   const settingsBtn = document.getElementById('settingsBtn');
-  if (settingsBtn) settingsBtn.addEventListener('click', toggleSettingsModal);
+  if (settingsBtn) settingsBtn.addEventListener('click', openSettingsModal);
+
+  const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+  if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', closeSettingsModal);
 
   const schemaTopBtn = document.getElementById('schemaTopBtn');
-  if (schemaTopBtn) schemaTopBtn.addEventListener('click', toggleSchemaModal);
+  if (schemaTopBtn) schemaTopBtn.addEventListener('click', openSchemaModal);
+
+  const closeSchemaBtn = document.getElementById('closeSchemaBtn');
+  if (closeSchemaBtn) closeSchemaBtn.addEventListener('click', closeSchemaModal);
+
+  const settingsModal = document.getElementById('settingsModal');
+  if (settingsModal) {
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target === settingsModal) closeSettingsModal();
+    });
+  }
+
+  const schemaModal = document.getElementById('schemaModal');
+  if (schemaModal) {
+    schemaModal.addEventListener('click', (e) => {
+      if (e.target === schemaModal) closeSchemaModal();
+    });
+  }
 
   const testDBBtn = document.getElementById('testDBBtn');
   if (testDBBtn) testDBBtn.addEventListener('click', testDBConnection);
@@ -31,12 +51,15 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadChats() {
   try {
     const res = await fetch('/api/chats');
+    if (!res.ok) return;
     const chats = await res.json();
     renderChatList(chats);
 
-    if (chats.length > 0 && !currentChatId) {
-      selectChat(chats[0].id);
-    } else if (chats.length === 0) {
+    if (chats.length > 0) {
+      if (!currentChatId || !chats.some(c => c.id === currentChatId)) {
+        selectChat(chats[0].id);
+      }
+    } else {
       createNewChat();
     }
   } catch (e) {
@@ -52,15 +75,26 @@ function renderChatList(chats) {
   chats.forEach(chat => {
     const item = document.createElement('div');
     item.className = `chat-item ${chat.id === currentChatId ? 'active' : ''}`;
+    item.dataset.chatId = chat.id;
     item.innerHTML = `
       <span class="chat-title" title="${escapeHtml(chat.title)}">${escapeHtml(chat.title)}</span>
-      <button class="btn-delete-chat" onclick="window.deleteChat(event, '${chat.id}')" title="Delete Chat">&times;</button>
+      <button class="btn-delete-chat" title="Delete Chat">&times;</button>
     `;
-    item.onclick = (e) => {
-      if (!e.target.classList.contains('btn-delete-chat')) {
+
+    const deleteBtn = item.querySelector('.btn-delete-chat');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteChat(chat.id);
+      });
+    }
+
+    item.addEventListener('click', (e) => {
+      if (e.target !== deleteBtn && (!deleteBtn || !deleteBtn.contains(e.target))) {
         selectChat(chat.id);
       }
-    };
+    });
+
     container.appendChild(item);
   });
 }
@@ -71,9 +105,15 @@ async function createNewChat() {
       method: 'POST',
       headers: { 'x-session-id': currentSessionId }
     });
+    if (!res.ok) return;
     const newChat = await res.json();
     currentChatId = newChat.id;
-    await loadChats();
+    
+    const chatsRes = await fetch('/api/chats');
+    if (chatsRes.ok) {
+      renderChatList(await chatsRes.json());
+    }
+    
     selectChat(newChat.id);
   } catch (e) {
     console.error("Error creating chat:", e);
@@ -84,17 +124,26 @@ async function selectChat(chatId) {
   currentChatId = chatId;
   try {
     const res = await fetch(`/api/chats/${chatId}`);
+    if (!res.ok) return;
     const chat = await res.json();
     renderChatMessages(chat);
-    renderChatList(await (await fetch('/api/chats')).json());
+
+    // Update active highlight in sidebar
+    const items = document.querySelectorAll('.chat-item');
+    items.forEach(item => {
+      if (item.dataset.chatId === chatId) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
   } catch (e) {
     console.error("Error selecting chat:", e);
   }
 }
 
-async function deleteChat(event, chatId) {
-  if (event && event.stopPropagation) event.stopPropagation();
-  if (!confirm("Are you sure you want to delete this chat session?")) return;
+async function deleteChat(chatId) {
+  if (!confirm("Are you sure you want to delete this conversation?")) return;
 
   try {
     await fetch(`/api/chats/${chatId}`, { method: 'DELETE' });
@@ -149,18 +198,19 @@ function renderChatMessages(chat) {
 }
 
 async function handleFormSubmit(event) {
-  if (event && event.preventDefault) event.preventDefault();
+  if (event) event.preventDefault();
   const input = document.getElementById('queryInput');
   if (!input) return;
   const text = input.value.trim();
   if (!text) return;
+
+  input.value = '';
 
   if (!currentChatId) {
     await createNewChat();
   }
 
   appendUserMessageUI(text);
-  input.value = '';
 
   const loadingCard = appendLoadingIndicator();
 
@@ -177,13 +227,23 @@ async function handleFormSubmit(event) {
     });
 
     const msg = await res.json();
-    loadingCard.remove();
+    if (loadingCard) loadingCard.remove();
+
+    if (!res.ok) {
+      appendErrorMessage(msg.detail || msg.message || "Failed to process query.");
+      return;
+    }
 
     appendAssistantMessageUI(msg);
-    loadChats();
+
+    // Refresh chat titles without resetting active session view
+    const chatsRes = await fetch('/api/chats');
+    if (chatsRes.ok) {
+      renderChatList(await chatsRes.json());
+    }
 
   } catch (e) {
-    loadingCard.remove();
+    if (loadingCard) loadingCard.remove();
     appendErrorMessage("Failed to process request: " + e.message);
   }
 }
@@ -205,12 +265,17 @@ async function handleClarificationChoice(optionId, question) {
     });
 
     const msg = await res.json();
-    loadingCard.remove();
+    if (loadingCard) loadingCard.remove();
+
+    if (!res.ok) {
+      appendErrorMessage(msg.detail || msg.message || "Failed to submit clarification.");
+      return;
+    }
 
     appendAssistantMessageUI(msg);
 
   } catch (e) {
-    loadingCard.remove();
+    if (loadingCard) loadingCard.remove();
     appendErrorMessage("Failed to submit clarification: " + e.message);
   }
 }
@@ -218,8 +283,9 @@ async function handleClarificationChoice(optionId, question) {
 function appendUserMessageUI(text) {
   const viewport = document.getElementById('chatViewport');
   if (!viewport) return;
-  const welcomeCard = document.querySelector('.welcome-card');
-  if (welcomeCard) welcomeCard.style.display = 'none';
+  
+  const welcomeCard = viewport.querySelector('.welcome-card');
+  if (welcomeCard) welcomeCard.remove();
 
   const userMsg = document.createElement('div');
   userMsg.className = 'user-message';
@@ -231,8 +297,9 @@ function appendUserMessageUI(text) {
 function appendAssistantMessageUI(msg) {
   const viewport = document.getElementById('chatViewport');
   if (!viewport) return;
-  const welcomeCard = document.querySelector('.welcome-card');
-  if (welcomeCard) welcomeCard.style.display = 'none';
+  
+  const welcomeCard = viewport.querySelector('.welcome-card');
+  if (welcomeCard) welcomeCard.remove();
 
   const aiCard = document.createElement('div');
   aiCard.className = 'ai-card';
@@ -243,7 +310,7 @@ function appendAssistantMessageUI(msg) {
         <div class="ambiguity-header">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12"></line>
             <line x1="12" y1="16" x2="12.01" y2="16"></line>
           </svg>
           <span>Ambiguous Intent Detected (${escapeHtml(msg.ambiguity ? msg.ambiguity.ambiguity_type : 'Ambiguity')})</span>
@@ -257,22 +324,23 @@ function appendAssistantMessageUI(msg) {
     viewport.appendChild(aiCard);
 
     const optsContainer = aiCard.querySelector(`#opts-${msg.id}`);
-    if (msg.clarification_options) {
+    if (optsContainer && msg.clarification_options) {
       msg.clarification_options.forEach(opt => {
         const btn = document.createElement('button');
         btn.className = 'btn-option';
+        btn.type = 'button';
         btn.innerHTML = `
           <span class="option-label">${escapeHtml(opt.label)}</span>
           <span class="option-desc">${escapeHtml(opt.description)}</span>
         `;
-        btn.onclick = () => handleClarificationChoice(opt.id, msg.text);
+        btn.addEventListener('click', () => handleClarificationChoice(opt.id, msg.text));
         optsContainer.appendChild(btn);
       });
     }
 
   } else if (msg.status === 'completed') {
     let tableHtml = '';
-    if (msg.rows && msg.rows.length > 0) {
+    if (msg.rows && msg.rows.length > 0 && msg.columns && msg.columns.length > 0) {
       const headers = msg.columns.map(c => `<th>${escapeHtml(c)}</th>`).join('');
       const rows = msg.rows.map(row => {
         const cells = msg.columns.map(c => `<td>${row[c] !== null && row[c] !== undefined ? escapeHtml(String(row[c])) : ''}</td>`).join('');
@@ -305,8 +373,8 @@ function appendAssistantMessageUI(msg) {
       ${tableHtml}
 
       <div class="metrics-bar">
-        <div class="metric-item">Execution Latency: <span>${msg.execution_time_ms} ms</span></div>
-        <div class="metric-item">Rows Returned: <span>${msg.row_count}</span></div>
+        <div class="metric-item">Execution Latency: <span>${msg.execution_time_ms ? msg.execution_time_ms + ' ms' : 'N/A'}</span></div>
+        <div class="metric-item">Rows Returned: <span>${msg.row_count !== undefined && msg.row_count !== null ? msg.row_count : 0}</span></div>
         <div class="metric-item">Tables Referenced: <span>${msg.tables_used ? msg.tables_used.join(', ') : 'None'}</span></div>
       </div>
     `;
@@ -323,7 +391,7 @@ function appendAssistantMessageUI(msg) {
 
 function appendLoadingIndicator() {
   const viewport = document.getElementById('chatViewport');
-  if (!viewport) return;
+  if (!viewport) return null;
   const card = document.createElement('div');
   card.className = 'ai-card';
   card.innerHTML = `<div class="summary-box">Thinking, inspecting schema, and analyzing query...</div>`;
@@ -347,6 +415,16 @@ function appendErrorMessage(errorMsg) {
 }
 
 /* Database Settings Modal & Connection Logic */
+function openSettingsModal() {
+  const modal = document.getElementById('settingsModal');
+  if (modal) modal.classList.add('active');
+}
+
+function closeSettingsModal() {
+  const modal = document.getElementById('settingsModal');
+  if (modal) modal.classList.remove('active');
+}
+
 function toggleSettingsModal() {
   const modal = document.getElementById('settingsModal');
   if (modal) modal.classList.toggle('active');
@@ -403,7 +481,7 @@ async function connectCustomDB() {
       feedback.textContent = "✓ " + data.message;
       updateHeaderStatus(true, payload.database);
       loadDBSchema();
-      setTimeout(toggleSettingsModal, 1500);
+      setTimeout(closeSettingsModal, 1200);
     } else {
       feedback.className = 'feedback-msg error';
       feedback.textContent = "❌ " + (data.detail || data.message);
@@ -429,6 +507,28 @@ async function disconnectDB() {
     loadDBSchema();
   } catch (e) {
     console.error("Error disconnecting:", e);
+  }
+}
+
+async function openSchemaModal() {
+  const modal = document.getElementById('schemaModal');
+  if (!modal) return;
+  modal.classList.add('active');
+  await loadDBSchema();
+}
+
+function closeSchemaModal() {
+  const modal = document.getElementById('schemaModal');
+  if (modal) modal.classList.remove('active');
+}
+
+async function toggleSchemaModal() {
+  const modal = document.getElementById('schemaModal');
+  if (!modal) return;
+  if (modal.classList.contains('active')) {
+    closeSchemaModal();
+  } else {
+    await openSchemaModal();
   }
 }
 
@@ -461,23 +561,12 @@ function getDBFormPayload() {
   };
 }
 
-async function toggleSchemaModal() {
-  const modal = document.getElementById('schemaModal');
-  if (!modal) return;
-  if (modal.classList.contains('active')) {
-    modal.classList.remove('active');
-  } else {
-    modal.classList.add('active');
-    await loadDBSchema();
-  }
-}
-
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
-// Explicitly bind to global window scope for inline HTML event attributes
+// Global scope bindings
 window.loadChats = loadChats;
 window.renderChatList = renderChatList;
 window.createNewChat = createNewChat;
@@ -488,9 +577,13 @@ window.handleFormSubmit = handleFormSubmit;
 window.handleClarificationChoice = handleClarificationChoice;
 window.appendUserMessageUI = appendUserMessageUI;
 window.appendAssistantMessageUI = appendAssistantMessageUI;
+window.openSettingsModal = openSettingsModal;
+window.closeSettingsModal = closeSettingsModal;
 window.toggleSettingsModal = toggleSettingsModal;
+window.openSchemaModal = openSchemaModal;
+window.closeSchemaModal = closeSchemaModal;
+window.toggleSchemaModal = toggleSchemaModal;
 window.testDBConnection = testDBConnection;
 window.connectCustomDB = connectCustomDB;
 window.disconnectDB = disconnectDB;
 window.loadDBSchema = loadDBSchema;
-window.toggleSchemaModal = toggleSchemaModal;

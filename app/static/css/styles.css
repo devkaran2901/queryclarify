@@ -34,7 +34,7 @@ body.pixel-theme {
   position: relative;
 }
 
-/* CRT Scanlines Overlay - Set behind app container so it never intercepts mouse events */
+/* CRT Scanlines Overlay */
 .crt-scanlines {
   position: fixed;
   top: 0;
@@ -99,10 +99,11 @@ body.pixel-theme {
   font-weight: 500;
 }
 
-/* Clean Interactive Buttons */
+/* Interactive Buttons */
 button, .btn-action, .btn-header-schema, .btn-send, .btn-option, .btn-primary, .btn-secondary, .btn-danger, .btn-close {
   cursor: pointer !important;
   pointer-events: auto !important;
+  user-select: none;
 }
 
 .btn-action {
@@ -637,7 +638,7 @@ button, .btn-action, .btn-header-schema, .btn-send, .btn-option, .btn-primary, .
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(8px);
   display: none;
   align-items: center;
@@ -646,7 +647,7 @@ button, .btn-action, .btn-header-schema, .btn-send, .btn-option, .btn-primary, .
 }
 
 .modal-overlay.active {
-  display: flex;
+  display: flex !important;
 }
 
 .modal-card {
