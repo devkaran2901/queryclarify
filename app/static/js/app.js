@@ -220,7 +220,7 @@ function renderChatMessages(chat) {
 }
 
 async function handleFormSubmit(event) {
-  if (event) event.preventDefault();
+  if (event && event.preventDefault) event.preventDefault();
   if (isSubmitting) return;
 
   const input = document.getElementById('queryInput');
@@ -442,35 +442,37 @@ function appendErrorMessage(errorMsg) {
 /* Modal Open / Close Logic */
 function openSettingsModal() {
   const modal = document.getElementById('settingsModal');
-  if (modal) modal.classList.add('active');
+  if (modal) modal.style.display = 'flex';
 }
 
 function closeSettingsModal() {
   const modal = document.getElementById('settingsModal');
-  if (modal) modal.classList.remove('active');
+  if (modal) modal.style.display = 'none';
 }
 
 function toggleSettingsModal() {
   const modal = document.getElementById('settingsModal');
-  if (modal) modal.classList.toggle('active');
+  if (modal) {
+    modal.style.display = (modal.style.display === 'flex' || modal.classList.contains('active')) ? 'none' : 'flex';
+  }
 }
 
 async function openSchemaModal() {
   const modal = document.getElementById('schemaModal');
   if (!modal) return;
-  modal.classList.add('active');
+  modal.style.display = 'flex';
   await loadDBSchema();
 }
 
 function closeSchemaModal() {
   const modal = document.getElementById('schemaModal');
-  if (modal) modal.classList.remove('active');
+  if (modal) modal.style.display = 'none';
 }
 
 async function toggleSchemaModal() {
   const modal = document.getElementById('schemaModal');
   if (!modal) return;
-  if (modal.classList.contains('active')) {
+  if (modal.style.display === 'flex' || modal.classList.contains('active')) {
     closeSchemaModal();
   } else {
     await openSchemaModal();
