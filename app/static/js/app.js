@@ -1,25 +1,10 @@
 let currentChatId = null;
 let currentSessionId = "default";
+let isSubmitting = false;
 
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
   loadChats();
   loadDBSchema();
-
-  // Attach event listeners to UI elements
-  const newChatBtn = document.getElementById('newChatBtn');
-  if (newChatBtn) newChatBtn.addEventListener('click', createNewChat);
-
-  const settingsBtn = document.getElementById('settingsBtn');
-  if (settingsBtn) settingsBtn.addEventListener('click', openSettingsModal);
-
-  const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-  if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', closeSettingsModal);
-
-  const schemaTopBtn = document.getElementById('schemaTopBtn');
-  if (schemaTopBtn) schemaTopBtn.addEventListener('click', openSchemaModal);
-
-  const closeSchemaBtn = document.getElementById('closeSchemaBtn');
-  if (closeSchemaBtn) closeSchemaBtn.addEventListener('click', closeSchemaModal);
 
   const settingsModal = document.getElementById('settingsModal');
   if (settingsModal) {
@@ -34,19 +19,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.target === schemaModal) closeSchemaModal();
     });
   }
+}
 
-  const testDBBtn = document.getElementById('testDBBtn');
-  if (testDBBtn) testDBBtn.addEventListener('click', testDBConnection);
-
-  const connectDBBtn = document.getElementById('connectDBBtn');
-  if (connectDBBtn) connectDBBtn.addEventListener('click', connectCustomDB);
-
-  const disconnectDBBtn = document.getElementById('disconnectDBBtn');
-  if (disconnectDBBtn) disconnectDBBtn.addEventListener('click', disconnectDB);
-
-  const queryForm = document.getElementById('queryForm');
-  if (queryForm) queryForm.addEventListener('submit', handleFormSubmit);
-});
+// Immediate execution or DOMContentLoaded safety check
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
 
 async function loadChats() {
   try {
@@ -78,22 +58,14 @@ function renderChatList(chats) {
     item.dataset.chatId = chat.id;
     item.innerHTML = `
       <span class="chat-title" title="${escapeHtml(chat.title)}">${escapeHtml(chat.title)}</span>
-      <button class="btn-delete-chat" title="Delete Chat">&times;</button>
+      <button class="btn-delete-chat" title="Delete Chat" onclick="event.stopPropagation(); deleteChat('${chat.id}')">&times;</button>
     `;
 
-    const deleteBtn = item.querySelector('.btn-delete-chat');
-    if (deleteBtn) {
-      deleteBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        deleteChat(chat.id);
-      });
-    }
-
-    item.addEventListener('click', (e) => {
-      if (e.target !== deleteBtn && (!deleteBtn || !deleteBtn.contains(e.target))) {
+    item.onclick = (e) => {
+      if (!e.target.classList.contains('btn-delete-chat')) {
         selectChat(chat.id);
       }
-    });
+    };
 
     container.appendChild(item);
   });
@@ -199,22 +171,24 @@ function renderChatMessages(chat) {
 
 async function handleFormSubmit(event) {
   if (event) event.preventDefault();
+  if (isSubmitting) return;
+
   const input = document.getElementById('queryInput');
   if (!input) return;
   const text = input.value.trim();
   if (!text) return;
 
+  isSubmitting = true;
   input.value = '';
 
-  if (!currentChatId) {
-    await createNewChat();
-  }
-
-  appendUserMessageUI(text);
-
-  const loadingCard = appendLoadingIndicator();
-
   try {
+    if (!currentChatId) {
+      await createNewChat();
+    }
+
+    appendUserMessageUI(text);
+    const loadingCard = appendLoadingIndicator();
+
     const payload = {
       chat_id: currentChatId,
       message: text
@@ -243,8 +217,9 @@ async function handleFormSubmit(event) {
     }
 
   } catch (e) {
-    if (loadingCard) loadingCard.remove();
     appendErrorMessage("Failed to process request: " + e.message);
+  } finally {
+    isSubmitting = false;
   }
 }
 
@@ -333,7 +308,7 @@ function appendAssistantMessageUI(msg) {
           <span class="option-label">${escapeHtml(opt.label)}</span>
           <span class="option-desc">${escapeHtml(opt.description)}</span>
         `;
-        btn.addEventListener('click', () => handleClarificationChoice(opt.id, msg.text));
+        btn.onclick = () => handleClarificationChoice(opt.id, msg.text);
         optsContainer.appendChild(btn);
       });
     }
@@ -414,7 +389,7 @@ function appendErrorMessage(errorMsg) {
   viewport.scrollTop = viewport.scrollHeight;
 }
 
-/* Database Settings Modal & Connection Logic */
+/* Modal Open / Close Logic */
 function openSettingsModal() {
   const modal = document.getElementById('settingsModal');
   if (modal) modal.classList.add('active');
@@ -428,6 +403,28 @@ function closeSettingsModal() {
 function toggleSettingsModal() {
   const modal = document.getElementById('settingsModal');
   if (modal) modal.classList.toggle('active');
+}
+
+async function openSchemaModal() {
+  const modal = document.getElementById('schemaModal');
+  if (!modal) return;
+  modal.classList.add('active');
+  await loadDBSchema();
+}
+
+function closeSchemaModal() {
+  const modal = document.getElementById('schemaModal');
+  if (modal) modal.classList.remove('active');
+}
+
+async function toggleSchemaModal() {
+  const modal = document.getElementById('schemaModal');
+  if (!modal) return;
+  if (modal.classList.contains('active')) {
+    closeSchemaModal();
+  } else {
+    await openSchemaModal();
+  }
 }
 
 async function testDBConnection() {
@@ -510,28 +507,6 @@ async function disconnectDB() {
   }
 }
 
-async function openSchemaModal() {
-  const modal = document.getElementById('schemaModal');
-  if (!modal) return;
-  modal.classList.add('active');
-  await loadDBSchema();
-}
-
-function closeSchemaModal() {
-  const modal = document.getElementById('schemaModal');
-  if (modal) modal.classList.remove('active');
-}
-
-async function toggleSchemaModal() {
-  const modal = document.getElementById('schemaModal');
-  if (!modal) return;
-  if (modal.classList.contains('active')) {
-    closeSchemaModal();
-  } else {
-    await openSchemaModal();
-  }
-}
-
 async function loadDBSchema() {
   try {
     const res = await fetch('/api/database/schema', {
@@ -567,6 +542,7 @@ function escapeHtml(str) {
 }
 
 // Global scope bindings
+window.initApp = initApp;
 window.loadChats = loadChats;
 window.renderChatList = renderChatList;
 window.createNewChat = createNewChat;
