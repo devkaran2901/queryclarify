@@ -4,6 +4,28 @@ let currentSessionId = "default";
 document.addEventListener('DOMContentLoaded', () => {
   loadChats();
   loadDBSchema();
+
+  // Attach explicit fallback click event listeners
+  const newChatBtn = document.getElementById('newChatBtn');
+  if (newChatBtn) newChatBtn.addEventListener('click', createNewChat);
+
+  const settingsBtn = document.getElementById('settingsBtn');
+  if (settingsBtn) settingsBtn.addEventListener('click', toggleSettingsModal);
+
+  const schemaTopBtn = document.getElementById('schemaTopBtn');
+  if (schemaTopBtn) schemaTopBtn.addEventListener('click', toggleSchemaModal);
+
+  const testDBBtn = document.getElementById('testDBBtn');
+  if (testDBBtn) testDBBtn.addEventListener('click', testDBConnection);
+
+  const connectDBBtn = document.getElementById('connectDBBtn');
+  if (connectDBBtn) connectDBBtn.addEventListener('click', connectCustomDB);
+
+  const disconnectDBBtn = document.getElementById('disconnectDBBtn');
+  if (disconnectDBBtn) disconnectDBBtn.addEventListener('click', disconnectDB);
+
+  const queryForm = document.getElementById('queryForm');
+  if (queryForm) queryForm.addEventListener('submit', handleFormSubmit);
 });
 
 async function loadChats() {
@@ -24,6 +46,7 @@ async function loadChats() {
 
 function renderChatList(chats) {
   const container = document.getElementById('chatList');
+  if (!container) return;
   container.innerHTML = '';
 
   chats.forEach(chat => {
@@ -31,7 +54,7 @@ function renderChatList(chats) {
     item.className = `chat-item ${chat.id === currentChatId ? 'active' : ''}`;
     item.innerHTML = `
       <span class="chat-title" title="${escapeHtml(chat.title)}">${escapeHtml(chat.title)}</span>
-      <button class="btn-delete-chat" onclick="deleteChat(event, '${chat.id}')" title="Delete Chat">&times;</button>
+      <button class="btn-delete-chat" onclick="window.deleteChat(event, '${chat.id}')" title="Delete Chat">&times;</button>
     `;
     item.onclick = (e) => {
       if (!e.target.classList.contains('btn-delete-chat')) {
@@ -70,7 +93,7 @@ async function selectChat(chatId) {
 }
 
 async function deleteChat(event, chatId) {
-  event.stopPropagation();
+  if (event && event.stopPropagation) event.stopPropagation();
   if (!confirm("Are you sure you want to delete this chat session?")) return;
 
   try {
@@ -86,6 +109,7 @@ async function deleteChat(event, chatId) {
 
 function renderChatMessages(chat) {
   const viewport = document.getElementById('chatViewport');
+  if (!viewport) return;
   viewport.innerHTML = '';
 
   if (!chat.messages || chat.messages.length === 0) {
@@ -125,8 +149,9 @@ function renderChatMessages(chat) {
 }
 
 async function handleFormSubmit(event) {
-  event.preventDefault();
+  if (event && event.preventDefault) event.preventDefault();
   const input = document.getElementById('queryInput');
+  if (!input) return;
   const text = input.value.trim();
   if (!text) return;
 
@@ -192,6 +217,7 @@ async function handleClarificationChoice(optionId, question) {
 
 function appendUserMessageUI(text) {
   const viewport = document.getElementById('chatViewport');
+  if (!viewport) return;
   const welcomeCard = document.querySelector('.welcome-card');
   if (welcomeCard) welcomeCard.style.display = 'none';
 
@@ -204,6 +230,7 @@ function appendUserMessageUI(text) {
 
 function appendAssistantMessageUI(msg) {
   const viewport = document.getElementById('chatViewport');
+  if (!viewport) return;
   const welcomeCard = document.querySelector('.welcome-card');
   if (welcomeCard) welcomeCard.style.display = 'none';
 
@@ -296,6 +323,7 @@ function appendAssistantMessageUI(msg) {
 
 function appendLoadingIndicator() {
   const viewport = document.getElementById('chatViewport');
+  if (!viewport) return;
   const card = document.createElement('div');
   card.className = 'ai-card';
   card.innerHTML = `<div class="summary-box">Thinking, inspecting schema, and analyzing query...</div>`;
@@ -306,6 +334,7 @@ function appendLoadingIndicator() {
 
 function appendErrorMessage(errorMsg) {
   const viewport = document.getElementById('chatViewport');
+  if (!viewport) return;
   const card = document.createElement('div');
   card.className = 'ai-card';
   card.style.borderColor = 'rgba(244, 63, 94, 0.4)';
@@ -320,11 +349,12 @@ function appendErrorMessage(errorMsg) {
 /* Database Settings Modal & Connection Logic */
 function toggleSettingsModal() {
   const modal = document.getElementById('settingsModal');
-  modal.classList.toggle('active');
+  if (modal) modal.classList.toggle('active');
 }
 
 async function testDBConnection() {
   const feedback = document.getElementById('dbFeedback');
+  if (!feedback) return;
   feedback.className = 'feedback-msg';
   feedback.style.display = 'block';
   feedback.textContent = "Testing connection...";
@@ -352,6 +382,7 @@ async function testDBConnection() {
 
 async function connectCustomDB() {
   const feedback = document.getElementById('dbFeedback');
+  if (!feedback) return;
   feedback.className = 'feedback-msg';
   feedback.style.display = 'block';
   feedback.textContent = "Connecting database...";
@@ -390,8 +421,10 @@ async function disconnectDB() {
       headers: { 'x-session-id': currentSessionId }
     });
     const feedback = document.getElementById('dbFeedback');
-    feedback.className = 'feedback-msg success';
-    feedback.textContent = "Disconnected custom DB. Reverted to demo database.";
+    if (feedback) {
+      feedback.className = 'feedback-msg success';
+      feedback.textContent = "Disconnected custom DB. Reverted to demo database.";
+    }
     updateHeaderStatus(false, "queryclarify (demo DB)");
     loadDBSchema();
   } catch (e) {
@@ -405,7 +438,8 @@ async function loadDBSchema() {
       headers: { 'x-session-id': currentSessionId }
     });
     const data = await res.json();
-    document.getElementById('schemaText').textContent = data.schema_text;
+    const schemaEl = document.getElementById('schemaText');
+    if (schemaEl) schemaEl.textContent = data.schema_text;
     updateHeaderStatus(data.connected, data.database_name);
   } catch (e) {
     console.error("Error loading schema:", e);
@@ -414,21 +448,22 @@ async function loadDBSchema() {
 
 function updateHeaderStatus(isConnected, dbName) {
   const text = document.getElementById('statusText');
-  text.textContent = `Connected to: ${dbName}`;
+  if (text) text.textContent = `Connected to: ${dbName}`;
 }
 
 function getDBFormPayload() {
   return {
-    host: document.getElementById('dbHost').value || "localhost",
-    port: parseInt(document.getElementById('dbPort').value) || 5432,
-    database: document.getElementById('dbName').value,
-    username: document.getElementById('dbUser').value,
-    password: document.getElementById('dbPassword').value
+    host: (document.getElementById('dbHost') ? document.getElementById('dbHost').value : "") || "localhost",
+    port: parseInt(document.getElementById('dbPort') ? document.getElementById('dbPort').value : 5432) || 5432,
+    database: document.getElementById('dbName') ? document.getElementById('dbName').value : "",
+    username: document.getElementById('dbUser') ? document.getElementById('dbUser').value : "",
+    password: document.getElementById('dbPassword') ? document.getElementById('dbPassword').value : ""
   };
 }
 
 async function toggleSchemaModal() {
   const modal = document.getElementById('schemaModal');
+  if (!modal) return;
   if (modal.classList.contains('active')) {
     modal.classList.remove('active');
   } else {
@@ -441,3 +476,21 @@ function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
+
+// Explicitly bind to global window scope for inline HTML event attributes
+window.loadChats = loadChats;
+window.renderChatList = renderChatList;
+window.createNewChat = createNewChat;
+window.selectChat = selectChat;
+window.deleteChat = deleteChat;
+window.renderChatMessages = renderChatMessages;
+window.handleFormSubmit = handleFormSubmit;
+window.handleClarificationChoice = handleClarificationChoice;
+window.appendUserMessageUI = appendUserMessageUI;
+window.appendAssistantMessageUI = appendAssistantMessageUI;
+window.toggleSettingsModal = toggleSettingsModal;
+window.testDBConnection = testDBConnection;
+window.connectCustomDB = connectCustomDB;
+window.disconnectDB = disconnectDB;
+window.loadDBSchema = loadDBSchema;
+window.toggleSchemaModal = toggleSchemaModal;
