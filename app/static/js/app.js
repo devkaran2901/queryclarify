@@ -2,23 +2,73 @@ let currentChatId = null;
 let currentSessionId = "default";
 let isSubmitting = false;
 
+// Expose functions globally to window immediately
+window.initApp = initApp;
+window.loadChats = loadChats;
+window.renderChatList = renderChatList;
+window.createNewChat = createNewChat;
+window.selectChat = selectChat;
+window.deleteChat = deleteChat;
+window.renderChatMessages = renderChatMessages;
+window.handleFormSubmit = handleFormSubmit;
+window.handleClarificationChoice = handleClarificationChoice;
+window.appendUserMessageUI = appendUserMessageUI;
+window.appendAssistantMessageUI = appendAssistantMessageUI;
+window.openSettingsModal = openSettingsModal;
+window.closeSettingsModal = closeSettingsModal;
+window.toggleSettingsModal = toggleSettingsModal;
+window.openSchemaModal = openSchemaModal;
+window.closeSchemaModal = closeSchemaModal;
+window.toggleSchemaModal = toggleSchemaModal;
+window.testDBConnection = testDBConnection;
+window.connectCustomDB = connectCustomDB;
+window.disconnectDB = disconnectDB;
+window.loadDBSchema = loadDBSchema;
+
 function initApp() {
   loadChats();
   loadDBSchema();
 
+  const newChatBtn = document.getElementById('newChatBtn');
+  if (newChatBtn) newChatBtn.onclick = createNewChat;
+
+  const settingsBtn = document.getElementById('settingsBtn');
+  if (settingsBtn) settingsBtn.onclick = openSettingsModal;
+
+  const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+  if (closeSettingsBtn) closeSettingsBtn.onclick = closeSettingsModal;
+
+  const schemaTopBtn = document.getElementById('schemaTopBtn');
+  if (schemaTopBtn) schemaTopBtn.onclick = openSchemaModal;
+
+  const closeSchemaBtn = document.getElementById('closeSchemaBtn');
+  if (closeSchemaBtn) closeSchemaBtn.onclick = closeSchemaModal;
+
   const settingsModal = document.getElementById('settingsModal');
   if (settingsModal) {
-    settingsModal.addEventListener('click', (e) => {
+    settingsModal.onclick = (e) => {
       if (e.target === settingsModal) closeSettingsModal();
-    });
+    };
   }
 
   const schemaModal = document.getElementById('schemaModal');
   if (schemaModal) {
-    schemaModal.addEventListener('click', (e) => {
+    schemaModal.onclick = (e) => {
       if (e.target === schemaModal) closeSchemaModal();
-    });
+    };
   }
+
+  const testDBBtn = document.getElementById('testDBBtn');
+  if (testDBBtn) testDBBtn.onclick = testDBConnection;
+
+  const connectDBBtn = document.getElementById('connectDBBtn');
+  if (connectDBBtn) connectDBBtn.onclick = connectCustomDB;
+
+  const disconnectDBBtn = document.getElementById('disconnectDBBtn');
+  if (disconnectDBBtn) disconnectDBBtn.onclick = disconnectDB;
+
+  const queryForm = document.getElementById('queryForm');
+  if (queryForm) queryForm.onsubmit = handleFormSubmit;
 }
 
 // Immediate execution or DOMContentLoaded safety check
@@ -540,26 +590,3 @@ function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
-
-// Global scope bindings
-window.initApp = initApp;
-window.loadChats = loadChats;
-window.renderChatList = renderChatList;
-window.createNewChat = createNewChat;
-window.selectChat = selectChat;
-window.deleteChat = deleteChat;
-window.renderChatMessages = renderChatMessages;
-window.handleFormSubmit = handleFormSubmit;
-window.handleClarificationChoice = handleClarificationChoice;
-window.appendUserMessageUI = appendUserMessageUI;
-window.appendAssistantMessageUI = appendAssistantMessageUI;
-window.openSettingsModal = openSettingsModal;
-window.closeSettingsModal = closeSettingsModal;
-window.toggleSettingsModal = toggleSettingsModal;
-window.openSchemaModal = openSchemaModal;
-window.closeSchemaModal = closeSchemaModal;
-window.toggleSchemaModal = toggleSchemaModal;
-window.testDBConnection = testDBConnection;
-window.connectCustomDB = connectCustomDB;
-window.disconnectDB = disconnectDB;
-window.loadDBSchema = loadDBSchema;
