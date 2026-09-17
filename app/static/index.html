@@ -3,70 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QueryClarify — Dynamic Database SQL Chatbot</title>
+  <title>QueryClarify — 8-Bit Ambiguity-Aware SQL Engine</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body>
+<body class="pixel-theme">
+  <!-- CRT Scanline overlay effect -->
+  <div class="crt-scanlines"></div>
+
   <div class="app-container">
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        <div class="pixel-sprite hero-sprite">
+          <!-- 8-Bit Pixel Robot/Alien Sprite -->
+          <svg width="32" height="32" viewBox="0 0 16 16" fill="currentColor">
+            <rect x="5" y="1" width="6" height="1"/>
+            <rect x="4" y="2" width="8" height="1"/>
+            <rect x="3" y="3" width="10" height="2"/>
+            <rect x="4" y="5" width="2" height="2" fill="#000"/>
+            <rect x="10" y="5" width="2" height="2" fill="#000"/>
+            <rect x="3" y="7" width="10" height="1"/>
+            <rect x="5" y="8" width="6" height="1"/>
+            <rect x="2" y="9" width="12" height="2"/>
+            <rect x="1" y="11" width="14" height="2"/>
+            <rect x="3" y="13" width="3" height="2"/>
+            <rect x="10" y="13" width="3" height="2"/>
           </svg>
         </div>
         <div class="brand-text">
-          <h2>QueryClarify</h2>
-          <span>Database SQL Chatbot</span>
+          <h1 class="pixel-font title">QueryClarify</h1>
+          <span class="pixel-subtitle">[ AMBIGUITY-AWARE SQL ]</span>
         </div>
       </div>
 
-      <button class="btn-new-chat" onclick="createNewChat()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-        + New Chat
+      <button class="btn-pixel btn-new-chat" onclick="createNewChat()">
+        <span class="pixel-icon">+</span> NEW CHAT SESSION
       </button>
 
       <div class="sidebar-section chats-section">
-        <h3>Conversations</h3>
+        <h3 class="pixel-section-title">CONVERSATIONS</h3>
         <div class="chat-list" id="chatList">
           <!-- Chat items rendered dynamically -->
         </div>
       </div>
 
       <div class="sidebar-footer">
-        <button class="btn-settings" onclick="toggleSettingsModal()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-          </svg>
-          ⚙ Settings & Database
+        <button class="btn-pixel btn-settings" onclick="toggleSettingsModal()">
+          <span class="pixel-icon">⚙</span> DB SETTINGS
         </button>
       </div>
     </aside>
 
     <!-- Main Content Area -->
     <main class="main-content">
-      <!-- Header -->
+      <!-- Top Header -->
       <header class="top-header">
         <div class="header-status" id="headerConnectionBadge">
-          <span class="status-indicator online"></span>
-          <span class="status-text" id="statusText">Connected to: queryclarify (demo e-commerce)</span>
+          <span class="pixel-dot green"></span>
+          <span class="pixel-font status-text" id="statusText">CONNECTED: DEMO_DB</span>
         </div>
+
+        <!-- 8-Bit Spaceship Arcade Sprite Header Graphic -->
+        <div class="header-sprite-bar">
+          <svg class="pixel-ship" width="48" height="24" viewBox="0 0 24 12" fill="currentColor">
+            <rect x="10" y="0" width="4" height="2"/>
+            <rect x="8" y="2" width="8" height="2"/>
+            <rect x="6" y="4" width="12" height="2"/>
+            <rect x="2" y="6" width="20" height="2"/>
+            <rect x="0" y="8" width="24" height="2"/>
+            <rect x="4" y="10" width="4" height="2"/>
+            <rect x="16" y="10" width="4" height="2"/>
+          </svg>
+        </div>
+
         <div class="header-actions">
-          <button class="btn-schema-top" onclick="toggleSchemaModal()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
-            </svg>
-            Schema Inspector
+          <button class="btn-pixel btn-schema-top" onclick="toggleSchemaModal()">
+            [ UI SCHEMA ]
           </button>
         </div>
       </header>
@@ -80,17 +95,15 @@
       <div class="input-container">
         <form id="queryForm" onsubmit="handleFormSubmit(event)">
           <div class="input-wrapper">
+            <span class="prompt-symbol">&gt;</span>
             <input 
               type="text" 
               id="queryInput" 
-              placeholder="Ask a question about your database (e.g. 'Who is our best customer?' or 'Which department has highest salary?')..."
+              placeholder="Ask a database question (e.g., 'Who is our best customer?' or 'Top products?')..."
               autocomplete="off"
             />
-            <button type="submit" id="sendBtn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="22" y1="2" x2="11" y2="13"></line>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
+            <button type="submit" id="sendBtn" class="btn-pixel-send">
+              SEND &rarr;
             </button>
           </div>
         </form>
@@ -102,53 +115,53 @@
   <div class="modal-overlay" id="settingsModal" onclick="toggleSettingsModal()">
     <div class="modal-card settings-card" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <h3>⚙ Database Settings</h3>
+        <h3 class="pixel-font">&lt; DATABASE_SETTINGS &gt;</h3>
         <button class="btn-close" onclick="toggleSettingsModal()">&times;</button>
       </div>
       <div class="modal-body">
         <div class="settings-grid">
           <div class="form-group">
-            <label>Database Type</label>
-            <select id="dbType" disabled>
+            <label class="pixel-label">DB TYPE</label>
+            <select id="dbType" disabled class="pixel-input">
               <option value="postgresql">PostgreSQL</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Host</label>
-            <input type="text" id="dbHost" value="localhost" placeholder="localhost" />
+            <label class="pixel-label">HOST</label>
+            <input type="text" id="dbHost" value="localhost" placeholder="localhost" class="pixel-input" />
           </div>
           <div class="form-group">
-            <label>Port</label>
-            <input type="number" id="dbPort" value="5432" placeholder="5432" />
+            <label class="pixel-label">PORT</label>
+            <input type="number" id="dbPort" value="5432" placeholder="5432" class="pixel-input" />
           </div>
           <div class="form-group">
-            <label>Database Name</label>
-            <input type="text" id="dbName" placeholder="company_db" />
+            <label class="pixel-label">DATABASE NAME</label>
+            <input type="text" id="dbName" placeholder="company_db" class="pixel-input" />
           </div>
           <div class="form-group">
-            <label>Username</label>
-            <input type="text" id="dbUser" placeholder="readonly_user" />
+            <label class="pixel-label">USERNAME</label>
+            <input type="text" id="dbUser" placeholder="readonly_user" class="pixel-input" />
           </div>
           <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="dbPassword" placeholder="••••••••" />
+            <label class="pixel-label">PASSWORD</label>
+            <input type="password" id="dbPassword" placeholder="••••••••" class="pixel-input" />
           </div>
         </div>
 
-        <div id="dbFeedback" class="feedback-msg"></div>
+        <div id="dbFeedback" class="feedback-msg pixel-font"></div>
 
         <div class="modal-btn-row">
-          <button class="btn-secondary" onclick="testDBConnection()">Test Connection</button>
-          <button class="btn-primary" onclick="connectCustomDB()">Connect Database</button>
-          <button class="btn-danger" onclick="disconnectDB()">Disconnect</button>
+          <button class="btn-pixel btn-secondary" onclick="testDBConnection()">TEST DB</button>
+          <button class="btn-pixel btn-primary" onclick="connectCustomDB()">CONNECT</button>
+          <button class="btn-pixel btn-danger" onclick="disconnectDB()">DISCONNECT</button>
         </div>
 
-        <div class="security-banner">
-          <h4>🔒 Query Safety & Security Policy</h4>
+        <div class="security-banner pixel-box">
+          <h4 class="pixel-font yellow-text">[ SECURITY PROTOCOLS ]</h4>
           <ul>
-            <li><strong>Read-Only Mode Enabled:</strong> Strictly permits `SELECT` statements. Rejects `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `TRUNCATE`.</li>
-            <li><strong>Maximum Result Limit:</strong> Capped at 100 rows per query.</li>
-            <li><strong>Credential Security:</strong> Passwords held in server-side session memory only. Never logged or written to disk.</li>
+            <li>• <strong>READ-ONLY MODE:</strong> Only `SELECT` statements allowed. Rejects `INSERT`, `UPDATE`, `DELETE`, `DROP`.</li>
+            <li>• <strong>MAX RESULT CAP:</strong> Hard limit capped at 100 rows.</li>
+            <li>• <strong>MEMORY SECURITY:</strong> Credentials stored in server session memory only.</li>
           </ul>
         </div>
       </div>
@@ -159,11 +172,11 @@
   <div class="modal-overlay" id="schemaModal" onclick="toggleSchemaModal()">
     <div class="modal-card" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <h3 id="schemaModalTitle">Database Schema Inspector</h3>
+        <h3 class="pixel-font" id="schemaModalTitle">&lt; SCHEMA_INSPECTOR &gt;</h3>
         <button class="btn-close" onclick="toggleSchemaModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <pre id="schemaText">Loading schema metadata...</pre>
+        <pre id="schemaText" class="crt-terminal">Loading schema metadata...</pre>
       </div>
     </div>
   </div>
