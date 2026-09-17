@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QueryClarify — Ambiguity-Aware Text-to-SQL System</title>
+  <title>QueryClarify — Dynamic Database SQL Chatbot</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -21,54 +21,32 @@
         </div>
         <div class="brand-text">
           <h2>QueryClarify</h2>
-          <span>Ambiguity-Aware Text-to-SQL</span>
+          <span>Database SQL Chatbot</span>
         </div>
       </div>
 
-      <div class="sidebar-section">
-        <h3>Sample Prompts</h3>
-        <div class="prompt-chips">
-          <button class="chip" onclick="usePrompt('Who is our best customer?')">
-            <span class="chip-badge ambiguous">Ambiguous</span>
-            "Who is our best customer?"
-          </button>
-          <button class="chip" onclick="usePrompt('Show all customers from India.')">
-            <span class="chip-badge clear">Clear</span>
-            "Show all customers from India."
-          </button>
-          <button class="chip" onclick="usePrompt('Show me top products.')">
-            <span class="chip-badge ambiguous">Ambiguous</span>
-            "Show me top products."
-          </button>
-          <button class="chip" onclick="usePrompt('Show recent sales.')">
-            <span class="chip-badge ambiguous">Ambiguous</span>
-            "Show recent sales."
-          </button>
-          <button class="chip" onclick="usePrompt('What is the total revenue from completed orders in USA?')">
-            <span class="chip-badge clear">Clear</span>
-            "Total revenue from completed orders in USA?"
-          </button>
-        </div>
-      </div>
+      <button class="btn-new-chat" onclick="createNewChat()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        + New Chat
+      </button>
 
-      <div class="sidebar-section">
-        <h3>System Guardrails</h3>
-        <ul class="guardrail-list">
-          <li><span class="dot green"></span> SQLGlot Read-Only AST Validation</li>
-          <li><span class="dot green"></span> Zero Write/Destructive Mutations</li>
-          <li><span class="dot green"></span> Hard Limit Cap (MAX 100 Rows)</li>
-          <li><span class="dot green"></span> Schema Context Grounding</li>
-        </ul>
+      <div class="sidebar-section chats-section">
+        <h3>Conversations</h3>
+        <div class="chat-list" id="chatList">
+          <!-- Chat items rendered dynamically -->
+        </div>
       </div>
 
       <div class="sidebar-footer">
-        <button class="btn-schema" onclick="toggleSchemaModal()">
+        <button class="btn-settings" onclick="toggleSettingsModal()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
-          Inspect Database Schema
+          ⚙ Settings & Database
         </button>
       </div>
     </aside>
@@ -77,42 +55,25 @@
     <main class="main-content">
       <!-- Header -->
       <header class="top-header">
-        <div class="header-status">
+        <div class="header-status" id="headerConnectionBadge">
           <span class="status-indicator online"></span>
-          <span class="status-text">System Active & Connected to PostgreSQL</span>
+          <span class="status-text" id="statusText">Connected to: queryclarify (demo e-commerce)</span>
         </div>
-        <div class="header-tags">
-          <span class="tech-tag">Groq Llama-3.3-70b</span>
-          <span class="tech-tag">PostgreSQL 16</span>
-          <span class="tech-tag">SQLGlot AST</span>
+        <div class="header-actions">
+          <button class="btn-schema-top" onclick="toggleSchemaModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+            </svg>
+            Schema Inspector
+          </button>
         </div>
       </header>
 
-      <!-- Chat Stream -->
+      <!-- Chat Viewport -->
       <div class="chat-viewport" id="chatViewport">
-        <!-- Welcome Card -->
-        <div class="welcome-card">
-          <div class="welcome-icon">⚡</div>
-          <h2>Welcome to QueryClarify</h2>
-          <p>
-            An AI-powered database assistant that proactively detects <strong>ambiguous questions</strong>, 
-            prompts for targeted clarifications, and safely generates and executes <strong>read-only SQL queries</strong> over PostgreSQL.
-          </p>
-          <div class="welcome-grid">
-            <div class="grid-item">
-              <h4>1. Ambiguity Detection</h4>
-              <p>Identifies underspecified metric, temporal, or entity terms before generating SQL.</p>
-            </div>
-            <div class="grid-item">
-              <h4>2. SQLGlot Safety</h4>
-              <p>Blocks destructive write queries (`DROP`, `DELETE`, `UPDATE`, multi-statements).</p>
-            </div>
-            <div class="grid-item">
-              <h4>3. PostgreSQL Execution</h4>
-              <p>Executes validated queries and formats instant structured data tables.</p>
-            </div>
-          </div>
-        </div>
+        <!-- Messages rendered dynamically -->
       </div>
 
       <!-- Input Area -->
@@ -122,7 +83,7 @@
             <input 
               type="text" 
               id="queryInput" 
-              placeholder="Ask a question about customers, products, or orders (e.g. 'Who is our best customer?')..."
+              placeholder="Ask a question about your database (e.g. 'Who is our best customer?' or 'Which department has highest salary?')..."
               autocomplete="off"
             />
             <button type="submit" id="sendBtn">
@@ -137,11 +98,68 @@
     </main>
   </div>
 
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal" onclick="toggleSettingsModal()">
+    <div class="modal-card settings-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>⚙ Database Settings</h3>
+        <button class="btn-close" onclick="toggleSettingsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-grid">
+          <div class="form-group">
+            <label>Database Type</label>
+            <select id="dbType" disabled>
+              <option value="postgresql">PostgreSQL</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Host</label>
+            <input type="text" id="dbHost" value="localhost" placeholder="localhost" />
+          </div>
+          <div class="form-group">
+            <label>Port</label>
+            <input type="number" id="dbPort" value="5432" placeholder="5432" />
+          </div>
+          <div class="form-group">
+            <label>Database Name</label>
+            <input type="text" id="dbName" placeholder="company_db" />
+          </div>
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="dbUser" placeholder="readonly_user" />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="dbPassword" placeholder="••••••••" />
+          </div>
+        </div>
+
+        <div id="dbFeedback" class="feedback-msg"></div>
+
+        <div class="modal-btn-row">
+          <button class="btn-secondary" onclick="testDBConnection()">Test Connection</button>
+          <button class="btn-primary" onclick="connectCustomDB()">Connect Database</button>
+          <button class="btn-danger" onclick="disconnectDB()">Disconnect</button>
+        </div>
+
+        <div class="security-banner">
+          <h4>🔒 Query Safety & Security Policy</h4>
+          <ul>
+            <li><strong>Read-Only Mode Enabled:</strong> Strictly permits `SELECT` statements. Rejects `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `TRUNCATE`.</li>
+            <li><strong>Maximum Result Limit:</strong> Capped at 100 rows per query.</li>
+            <li><strong>Credential Security:</strong> Passwords held in server-side session memory only. Never logged or written to disk.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Schema Modal -->
   <div class="modal-overlay" id="schemaModal" onclick="toggleSchemaModal()">
     <div class="modal-card" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <h3>PostgreSQL Database Schema</h3>
+        <h3 id="schemaModalTitle">Database Schema Inspector</h3>
         <button class="btn-close" onclick="toggleSchemaModal()">&times;</button>
       </div>
       <div class="modal-body">

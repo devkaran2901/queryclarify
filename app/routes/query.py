@@ -33,7 +33,7 @@ def health_check():
 @router.post("/api/query", response_model=QueryResponse, tags=["Query"])
 def submit_query(request: QueryRequest):
     """
-    Main endpoint for natural language queries and clarification responses.
+    Legacy API endpoint for natural language queries and clarification responses.
     """
     if not request.question and not request.selected_option:
         raise HTTPException(
@@ -54,5 +54,5 @@ def submit_query(request: QueryRequest):
 
 @router.get("/api/schema", tags=["Schema"])
 def get_schema():
-    """Returns database schema metadata summary."""
+    """Returns database schema metadata summary for demo database."""
     return {"schema": schema_inspector.get_schema_summary()}

@@ -41,4 +41,4 @@ def test_reject_invalid_table_name():
     sql = "SELECT * FROM secret_admin_passwords"
     is_valid, _, msg, _ = sql_validator.validate_and_sanitize(sql)
     assert is_valid is False
-    assert "do not exist in the database schema" in msg
+    assert "do not exist in the" in msg

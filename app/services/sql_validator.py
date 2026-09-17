@@ -1,11 +1,11 @@
 import logging
 import sqlglot
 from sqlglot import exp
-from typing import Tuple, List, Set
+from typing import Tuple, List, Set, Optional
 
 logger = logging.getLogger("sql_validator")
 
-ALLOWED_TABLES = {"customers", "products", "orders", "order_items"}
+DEFAULT_ALLOWED_TABLES = {"customers", "products", "orders", "order_items"}
 MAX_LIMIT = 100
 
 
@@ -15,13 +15,17 @@ class SQLValidator:
     multi-statement protection, and automatic row limit enforcement using SQLGlot.
     """
 
-    def __init__(self, allowed_tables: Set[str] = None, max_limit: int = MAX_LIMIT):
-        self.allowed_tables = allowed_tables or ALLOWED_TABLES
+    def __init__(self, allowed_tables: Optional[Set[str]] = None, max_limit: int = MAX_LIMIT):
+        self.allowed_tables = allowed_tables
         self.max_limit = max_limit
 
-    def validate_and_sanitize(self, sql_query: str) -> Tuple[bool, str, str, List[str]]:
+    def validate_and_sanitize(
+        self,
+        sql_query: str,
+        dynamic_allowed_tables: Optional[Set[str]] = None
+    ) -> Tuple[bool, str, str, List[str]]:
         """
-        Parses and checks SQL for syntax and safety rules.
+        Parses and checks SQL for syntax and safety rules against dynamic or default allowed tables.
         Returns:
             (is_valid: bool, sanitized_sql: str, message: str, tables_used: List[str])
         """
@@ -67,10 +71,15 @@ class SQLValidator:
             if t_name:
                 tables_used.add(t_name)
 
-        # Validate referenced tables exist in schema
-        invalid_tables = tables_used - self.allowed_tables
+        # Validate referenced tables exist in connected schema
+        target_allowed_tables = dynamic_allowed_tables if dynamic_allowed_tables is not None else (self.allowed_tables or DEFAULT_ALLOWED_TABLES)
+        
+        # Convert all allowed table names to lowercase for case-insensitive matching
+        allowed_set_lower = {t.lower() for t in target_allowed_tables}
+        invalid_tables = tables_used - allowed_set_lower
+
         if invalid_tables:
-            return False, clean_sql, f"Referenced tables {invalid_tables} do not exist in the database schema.", []
+            return False, clean_sql, f"Referenced tables {invalid_tables} do not exist in the connected database schema.", []
 
         # Limit enforcement: ensure LIMIT clause exists and is capped at MAX_LIMIT
         limit_node = expression.args.get("limit")
