@@ -1,0 +1,162 @@
+[
+  {
+    "id": 1,
+    "question": "Show all customers from India.",
+    "ambiguous": false,
+    "ambiguity_type": null,
+    "expected_clarification": null,
+    "expected_interpretation": "Filter customers by country = 'India'"
+  },
+  {
+    "id": 2,
+    "question": "Who is our best customer?",
+    "ambiguous": true,
+    "ambiguity_type": "metric",
+    "expected_clarification": "What metric should define the best customer?",
+    "expected_interpretation": "Highest revenue"
+  },
+  {
+    "id": 3,
+    "question": "How many orders were completed this month?",
+    "ambiguous": false,
+    "ambiguity_type": null,
+    "expected_clarification": null,
+    "expected_interpretation": "Count orders with status = 'completed' in current month"
+  },
+  {
+    "id": 4,
+    "question": "Show me top products.",
+    "ambiguous": true,
+    "ambiguity_type": "ranking",
+    "expected_clarification": "How should we rank top products?",
+    "expected_interpretation": "Highest sales revenue"
+  },
+  {
+    "id": 5,
+    "question": "List all products in the Electronics category.",
+    "ambiguous": false,
+    "ambiguity_type": null,
+    "expected_clarification": null,
+    "expected_interpretation": "Filter products by category = 'Electronics'"
+  },
+  {
+    "id": 6,
+    "question": "Show recent sales.",
+    "ambiguous": true,
+    "ambiguity_type": "time",
+    "expected_clarification": "What time period should be considered for recent?",
+    "expected_interpretation": "Last 30 days"
+  },
+  {
+    "id": 7,
+    "question": "What is the total revenue from completed orders in USA?",
+    "ambiguous": false,
+    "ambiguity_type": null,
+    "expected_clarification": null,
+    "expected_interpretation": "Sum total_amount for orders from customers in USA with status = 'completed'"
+  },
+  {
+    "id": 8,
+    "question": "Which customers are valuable?",
+    "ambiguous": true,
+    "ambiguity_type": "filter",
+    "expected_clarification": "What defines a valuable customer?",
+    "expected_interpretation": "Total spend > $1000"
+  },
+  {
+    "id": 9,
+    "question": "Show all cancelled orders.",
+    "ambiguous": false,
+    "ambiguity_type": null,
+    "expected_clarification": null,
+    "expected_interpretation": "Filter orders by status = 'cancelled'"
+  },
+  {
+    "id": 10,
+    "question": "Show the best-performing category.",
+    "ambiguous": true,
+    "ambiguity_type": "ranking",
+    "expected_clarification": "How to measure category performance?",
+    "expected_interpretation": "Total category revenue"
+  },
+  {
+    "id": 11,
+    "question": "Show all products with price greater than 100.",
+    "ambiguous": false,
+    "ambiguity_type": null,
+    "expected_clarification": null,
+    "expected_interpretation": "Filter products where price > 100"
+  },
+  {
+    "id": 12,
+    "question": "Show active customers.",
+    "ambiguous": true,
+    "ambiguity_type": "business_term",
+    "expected_clarification": "What defines an active customer?",
+    "expected_interpretation": "Customers with at least 1 order in last 90 days"
+  },
+  {
+    "id": 13,
+    "question": "List orders placed in 2025.",
+    "ambiguous": false,
+    "ambiguity_type": null,
+    "expected_clarification": null,
+    "expected_interpretation": "Filter orders by order_date year = 2025"
+  },
+  {
+    "id": 14,
+    "question": "Show me top 5 revenue generating customers.",
+    "ambiguous": false,
+    "ambiguity_type": null,
+    "expected_clarification": null,
+    "expected_interpretation": "Group by customer and sum order total_amount desc limit 5"
+  },
+  {
+    "id": 15,
+    "question": "Show high-value orders.",
+    "ambiguous": true,
+    "ambiguity_type": "filter",
+    "expected_clarification": "What threshold defines a high-value order?",
+    "expected_interpretation": "Order total > $500"
+  },
+  {
+    "id": 16,
+    "question": "What is the average price of products in Apparel category?",
+    "ambiguous": false,
+    "ambiguity_type": null,
+    "expected_clarification": null,
+    "expected_interpretation": "AVG(price) where category = 'Apparel'"
+  },
+  {
+    "id": 17,
+    "question": "Show customer retention rates.",
+    "ambiguous": true,
+    "ambiguity_type": "metric",
+    "expected_clarification": "What formula for retention rate should be used?",
+    "expected_interpretation": "Percentage of customers with repeat orders"
+  },
+  {
+    "id": 18,
+    "question": "Count total customers in Germany.",
+    "ambiguous": false,
+    "ambiguity_type": null,
+    "expected_clarification": null,
+    "expected_interpretation": "COUNT(*) from customers where country = 'Germany'"
+  },
+  {
+    "id": 19,
+    "question": "Who is the top buyer in Canada?",
+    "ambiguous": true,
+    "ambiguity_type": "metric",
+    "expected_clarification": "Top buyer by highest spend or most orders?",
+    "expected_interpretation": "Highest spend"
+  },
+  {
+    "id": 20,
+    "question": "Show all orders with total amount exceeding 500.",
+    "ambiguous": false,
+    "ambiguity_type": null,
+    "expected_clarification": null,
+    "expected_interpretation": "Filter orders where total_amount > 500"
+  }
+]

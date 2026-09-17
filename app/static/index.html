@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QueryClarify — Ambiguity-Aware Text-to-SQL System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h2>QueryClarify</h2>
+          <span>Ambiguity-Aware Text-to-SQL</span>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Sample Prompts</h3>
+        <div class="prompt-chips">
+          <button class="chip" onclick="usePrompt('Who is our best customer?')">
+            <span class="chip-badge ambiguous">Ambiguous</span>
+            "Who is our best customer?"
+          </button>
+          <button class="chip" onclick="usePrompt('Show all customers from India.')">
+            <span class="chip-badge clear">Clear</span>
+            "Show all customers from India."
+          </button>
+          <button class="chip" onclick="usePrompt('Show me top products.')">
+            <span class="chip-badge ambiguous">Ambiguous</span>
+            "Show me top products."
+          </button>
+          <button class="chip" onclick="usePrompt('Show recent sales.')">
+            <span class="chip-badge ambiguous">Ambiguous</span>
+            "Show recent sales."
+          </button>
+          <button class="chip" onclick="usePrompt('What is the total revenue from completed orders in USA?')">
+            <span class="chip-badge clear">Clear</span>
+            "Total revenue from completed orders in USA?"
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>System Guardrails</h3>
+        <ul class="guardrail-list">
+          <li><span class="dot green"></span> SQLGlot Read-Only AST Validation</li>
+          <li><span class="dot green"></span> Zero Write/Destructive Mutations</li>
+          <li><span class="dot green"></span> Hard Limit Cap (MAX 100 Rows)</li>
+          <li><span class="dot green"></span> Schema Context Grounding</li>
+        </ul>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="btn-schema" onclick="toggleSchemaModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+          </svg>
+          Inspect Database Schema
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="top-header">
+        <div class="header-status">
+          <span class="status-indicator online"></span>
+          <span class="status-text">System Active & Connected to PostgreSQL</span>
+        </div>
+        <div class="header-tags">
+          <span class="tech-tag">Groq Llama-3.3-70b</span>
+          <span class="tech-tag">PostgreSQL 16</span>
+          <span class="tech-tag">SQLGlot AST</span>
+        </div>
+      </header>
+
+      <!-- Chat Stream -->
+      <div class="chat-viewport" id="chatViewport">
+        <!-- Welcome Card -->
+        <div class="welcome-card">
+          <div class="welcome-icon">⚡</div>
+          <h2>Welcome to QueryClarify</h2>
+          <p>
+            An AI-powered database assistant that proactively detects <strong>ambiguous questions</strong>, 
+            prompts for targeted clarifications, and safely generates and executes <strong>read-only SQL queries</strong> over PostgreSQL.
+          </p>
+          <div class="welcome-grid">
+            <div class="grid-item">
+              <h4>1. Ambiguity Detection</h4>
+              <p>Identifies underspecified metric, temporal, or entity terms before generating SQL.</p>
+            </div>
+            <div class="grid-item">
+              <h4>2. SQLGlot Safety</h4>
+              <p>Blocks destructive write queries (`DROP`, `DELETE`, `UPDATE`, multi-statements).</p>
+            </div>
+            <div class="grid-item">
+              <h4>3. PostgreSQL Execution</h4>
+              <p>Executes validated queries and formats instant structured data tables.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="input-container">
+        <form id="queryForm" onsubmit="handleFormSubmit(event)">
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              id="queryInput" 
+              placeholder="Ask a question about customers, products, or orders (e.g. 'Who is our best customer?')..."
+              autocomplete="off"
+            />
+            <button type="submit" id="sendBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <!-- Schema Modal -->
+  <div class="modal-overlay" id="schemaModal" onclick="toggleSchemaModal()">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>PostgreSQL Database Schema</h3>
+        <button class="btn-close" onclick="toggleSchemaModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <pre id="schemaText">Loading schema metadata...</pre>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
