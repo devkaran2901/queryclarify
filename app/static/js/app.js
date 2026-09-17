@@ -30,7 +30,7 @@ function renderChatList(chats) {
     const item = document.createElement('div');
     item.className = `chat-item ${chat.id === currentChatId ? 'active' : ''}`;
     item.innerHTML = `
-      <span class="chat-title" title="${escapeHtml(chat.title)}">&gt; ${escapeHtml(chat.title)}</span>
+      <span class="chat-title" title="${escapeHtml(chat.title)}">${escapeHtml(chat.title)}</span>
       <button class="btn-delete-chat" onclick="deleteChat(event, '${chat.id}')" title="Delete Chat">&times;</button>
     `;
     item.onclick = (e) => {
@@ -91,21 +91,21 @@ function renderChatMessages(chat) {
   if (!chat.messages || chat.messages.length === 0) {
     viewport.innerHTML = `
       <div class="welcome-card">
-        <div class="welcome-icon">👾</div>
-        <h2 class="pixel-font">QueryClarify 8-Bit Engine</h2>
+        <div class="welcome-icon">⚡</div>
+        <h2>Welcome to QueryClarify</h2>
         <p>Connect your PostgreSQL database in Settings or ask natural language questions about the connected database.</p>
         <div class="welcome-grid">
           <div class="grid-item">
-            <h4>DYNAMIC AMBIGUITY</h4>
-            <p>Detects vague intent against your dynamic PostgreSQL schema.</p>
+            <h4>Dynamic Ambiguity</h4>
+            <p>Detects vague intent against your connected database schema.</p>
           </div>
           <div class="grid-item">
-            <h4>SQLGLOT READ-ONLY</h4>
+            <h4>SQLGlot Read-Only</h4>
             <p>Strictly blocks write/mutation queries (`DROP`, `DELETE`, `UPDATE`).</p>
           </div>
           <div class="grid-item">
-            <h4>CUSTOM POSTGRES</h4>
-            <p>Connect any arbitrary database via Settings panel.</p>
+            <h4>Custom Database</h4>
+            <p>Connect any arbitrary PostgreSQL database via Settings.</p>
           </div>
         </div>
       </div>
@@ -214,7 +214,12 @@ function appendAssistantMessageUI(msg) {
     aiCard.innerHTML = `
       <div class="ambiguity-banner">
         <div class="ambiguity-header">
-          <span>⚠️ AMBIGUOUS INTENT DETECTED [${escapeHtml(msg.ambiguity ? msg.ambiguity.ambiguity_type : 'AMBIGUITY')}]</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>Ambiguous Intent Detected (${escapeHtml(msg.ambiguity ? msg.ambiguity.ambiguity_type : 'Ambiguity')})</span>
         </div>
         <p class="ambiguity-reason">${escapeHtml(msg.ambiguity ? msg.ambiguity.reason : '')}</p>
         <div class="ambiguity-question">${escapeHtml(msg.clarification_question || '')}</div>
@@ -230,7 +235,7 @@ function appendAssistantMessageUI(msg) {
         const btn = document.createElement('button');
         btn.className = 'btn-option';
         btn.innerHTML = `
-          <span class="option-label">&gt; ${escapeHtml(opt.label)}</span>
+          <span class="option-label">${escapeHtml(opt.label)}</span>
           <span class="option-desc">${escapeHtml(opt.description)}</span>
         `;
         btn.onclick = () => handleClarificationChoice(opt.id, msg.text);
@@ -259,13 +264,13 @@ function appendAssistantMessageUI(msg) {
 
     aiCard.innerHTML = `
       <div class="summary-box">
-        <strong>[ SUMMARY ]:</strong> ${escapeHtml(msg.summary || msg.text)}
+        <strong>Result:</strong> ${escapeHtml(msg.summary || msg.text)}
       </div>
 
       <div class="sql-section">
         <div class="sql-header">
-          <span>GENERATED POSTGRESQL QUERY</span>
-          <span class="badge-safety">✓ SQLGLOT READ-ONLY VERIFIED</span>
+          <span>Generated SQL Query</span>
+          <span class="badge-safety">✓ SQLGlot Read-Only Verified</span>
         </div>
         <div class="sql-code">${escapeHtml(msg.sql)}</div>
       </div>
@@ -273,9 +278,9 @@ function appendAssistantMessageUI(msg) {
       ${tableHtml}
 
       <div class="metrics-bar">
-        <div class="metric-item">LATENCY: <span>${msg.execution_time_ms} ms</span></div>
-        <div class="metric-item">ROWS: <span>${msg.row_count}</span></div>
-        <div class="metric-item">TABLES: <span>${msg.tables_used ? msg.tables_used.join(', ') : 'NONE'}</span></div>
+        <div class="metric-item">Execution Latency: <span>${msg.execution_time_ms} ms</span></div>
+        <div class="metric-item">Rows Returned: <span>${msg.row_count}</span></div>
+        <div class="metric-item">Tables Referenced: <span>${msg.tables_used ? msg.tables_used.join(', ') : 'None'}</span></div>
       </div>
     `;
 
@@ -293,7 +298,7 @@ function appendLoadingIndicator() {
   const viewport = document.getElementById('chatViewport');
   const card = document.createElement('div');
   card.className = 'ai-card';
-  card.innerHTML = `<div class="summary-box pixel-font">&gt; PROCESSING QUERY & INSPECTING SCHEMA...</div>`;
+  card.innerHTML = `<div class="summary-box">Thinking, inspecting schema, and analyzing query...</div>`;
   viewport.appendChild(card);
   viewport.scrollTop = viewport.scrollHeight;
   return card;
@@ -303,11 +308,10 @@ function appendErrorMessage(errorMsg) {
   const viewport = document.getElementById('chatViewport');
   const card = document.createElement('div');
   card.className = 'ai-card';
-  card.style.borderColor = 'var(--pixel-red)';
-  card.style.boxShadow = '4px 4px 0px var(--pixel-red)';
+  card.style.borderColor = 'rgba(244, 63, 94, 0.4)';
   card.innerHTML = `
-    <div style="color: var(--pixel-red); font-family: var(--font-pixel-title); font-size: 0.8rem;">⚠️ ERROR</div>
-    <div style="font-size: 0.95rem; color: #fca5a5;">${escapeHtml(errorMsg)}</div>
+    <div style="color: #f43f5e; font-weight: 600;">⚠️ Error</div>
+    <div style="font-size: 0.9rem; color: #fca5a5;">${escapeHtml(errorMsg)}</div>
   `;
   viewport.appendChild(card);
   viewport.scrollTop = viewport.scrollHeight;
@@ -321,9 +325,9 @@ function toggleSettingsModal() {
 
 async function testDBConnection() {
   const feedback = document.getElementById('dbFeedback');
-  feedback.className = 'feedback-msg pixel-font';
+  feedback.className = 'feedback-msg';
   feedback.style.display = 'block';
-  feedback.textContent = "TESTING CONNECTION...";
+  feedback.textContent = "Testing connection...";
 
   const payload = getDBFormPayload();
   try {
@@ -334,23 +338,23 @@ async function testDBConnection() {
     });
     const data = await res.json();
     if (data.success) {
-      feedback.className = 'feedback-msg success pixel-font';
-      feedback.textContent = "✓ " + data.message.toUpperCase();
+      feedback.className = 'feedback-msg success';
+      feedback.textContent = "✓ " + data.message;
     } else {
-      feedback.className = 'feedback-msg error pixel-font';
-      feedback.textContent = "❌ " + data.message.toUpperCase();
+      feedback.className = 'feedback-msg error';
+      feedback.textContent = "❌ " + data.message;
     }
   } catch (e) {
-    feedback.className = 'feedback-msg error pixel-font';
-    feedback.textContent = "❌ CONNECTION TEST FAILED: " + e.message.toUpperCase();
+    feedback.className = 'feedback-msg error';
+    feedback.textContent = "❌ Connection test failed: " + e.message;
   }
 }
 
 async function connectCustomDB() {
   const feedback = document.getElementById('dbFeedback');
-  feedback.className = 'feedback-msg pixel-font';
+  feedback.className = 'feedback-msg';
   feedback.style.display = 'block';
-  feedback.textContent = "CONNECTING DATABASE...";
+  feedback.textContent = "Connecting database...";
 
   const payload = getDBFormPayload();
   try {
@@ -364,18 +368,18 @@ async function connectCustomDB() {
     });
     const data = await res.json();
     if (res.ok && data.success) {
-      feedback.className = 'feedback-msg success pixel-font';
-      feedback.textContent = "✓ " + data.message.toUpperCase();
+      feedback.className = 'feedback-msg success';
+      feedback.textContent = "✓ " + data.message;
       updateHeaderStatus(true, payload.database);
       loadDBSchema();
       setTimeout(toggleSettingsModal, 1500);
     } else {
-      feedback.className = 'feedback-msg error pixel-font';
-      feedback.textContent = "❌ " + (data.detail || data.message).toUpperCase();
+      feedback.className = 'feedback-msg error';
+      feedback.textContent = "❌ " + (data.detail || data.message);
     }
   } catch (e) {
-    feedback.className = 'feedback-msg error pixel-font';
-    feedback.textContent = "❌ CONNECT FAILED: " + e.message.toUpperCase();
+    feedback.className = 'feedback-msg error';
+    feedback.textContent = "❌ Connect failed: " + e.message;
   }
 }
 
@@ -386,9 +390,9 @@ async function disconnectDB() {
       headers: { 'x-session-id': currentSessionId }
     });
     const feedback = document.getElementById('dbFeedback');
-    feedback.className = 'feedback-msg success pixel-font';
-    feedback.textContent = "DISCONNECTED CUSTOM DB. REVERTED TO DEMO_DB.";
-    updateHeaderStatus(false, "queryclarify (demo_db)");
+    feedback.className = 'feedback-msg success';
+    feedback.textContent = "Disconnected custom DB. Reverted to demo database.";
+    updateHeaderStatus(false, "queryclarify (demo DB)");
     loadDBSchema();
   } catch (e) {
     console.error("Error disconnecting:", e);
@@ -410,7 +414,7 @@ async function loadDBSchema() {
 
 function updateHeaderStatus(isConnected, dbName) {
   const text = document.getElementById('statusText');
-  text.textContent = `CONNECTED: ${dbName.toUpperCase()}`;
+  text.textContent = `Connected to: ${dbName}`;
 }
 
 function getDBFormPayload() {

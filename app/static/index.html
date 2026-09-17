@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QueryClarify — 8-Bit Ambiguity-Aware SQL Engine</title>
+  <title>QueryClarify — Ambiguity-Aware SQL Engine</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body class="pixel-theme">
@@ -18,8 +18,8 @@
     <aside class="sidebar">
       <div class="brand">
         <div class="pixel-sprite hero-sprite">
-          <!-- 8-Bit Pixel Robot/Alien Sprite -->
-          <svg width="32" height="32" viewBox="0 0 16 16" fill="currentColor">
+          <!-- 8-Bit Pixel Hero Robot Sprite -->
+          <svg width="28" height="28" viewBox="0 0 16 16" fill="currentColor">
             <rect x="5" y="1" width="6" height="1"/>
             <rect x="4" y="2" width="8" height="1"/>
             <rect x="3" y="3" width="10" height="2"/>
@@ -34,25 +34,25 @@
           </svg>
         </div>
         <div class="brand-text">
-          <h1 class="pixel-font title">QueryClarify</h1>
-          <span class="pixel-subtitle">[ AMBIGUITY-AWARE SQL ]</span>
+          <h1 class="title">QueryClarify</h1>
+          <span class="subtitle">Ambiguity-Aware SQL</span>
         </div>
       </div>
 
-      <button class="btn-pixel btn-new-chat" onclick="createNewChat()">
-        <span class="pixel-icon">+</span> NEW CHAT SESSION
+      <button class="btn-action btn-new-chat" onclick="createNewChat()">
+        <span class="icon">+</span> New Chat Session
       </button>
 
       <div class="sidebar-section chats-section">
-        <h3 class="pixel-section-title">CONVERSATIONS</h3>
+        <h3 class="section-title">CONVERSATIONS</h3>
         <div class="chat-list" id="chatList">
           <!-- Chat items rendered dynamically -->
         </div>
       </div>
 
       <div class="sidebar-footer">
-        <button class="btn-pixel btn-settings" onclick="toggleSettingsModal()">
-          <span class="pixel-icon">⚙</span> DB SETTINGS
+        <button class="btn-action btn-settings" onclick="toggleSettingsModal()">
+          <span class="icon">⚙</span> DB Settings
         </button>
       </div>
     </aside>
@@ -62,13 +62,13 @@
       <!-- Top Header -->
       <header class="top-header">
         <div class="header-status" id="headerConnectionBadge">
-          <span class="pixel-dot green"></span>
-          <span class="pixel-font status-text" id="statusText">CONNECTED: DEMO_DB</span>
+          <span class="status-dot green"></span>
+          <span class="status-text" id="statusText">Connected to: queryclarify (demo DB)</span>
         </div>
 
-        <!-- 8-Bit Spaceship Arcade Sprite Header Graphic -->
+        <!-- Animated 8-Bit Spaceship Graphic -->
         <div class="header-sprite-bar">
-          <svg class="pixel-ship" width="48" height="24" viewBox="0 0 24 12" fill="currentColor">
+          <svg class="pixel-ship" width="42" height="21" viewBox="0 0 24 12" fill="currentColor">
             <rect x="10" y="0" width="4" height="2"/>
             <rect x="8" y="2" width="8" height="2"/>
             <rect x="6" y="4" width="12" height="2"/>
@@ -80,8 +80,13 @@
         </div>
 
         <div class="header-actions">
-          <button class="btn-pixel btn-schema-top" onclick="toggleSchemaModal()">
-            [ UI SCHEMA ]
+          <button class="btn-header-schema" onclick="toggleSchemaModal()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+            </svg>
+            Schema Inspector
           </button>
         </div>
       </header>
@@ -99,11 +104,11 @@
             <input 
               type="text" 
               id="queryInput" 
-              placeholder="Ask a database question (e.g., 'Who is our best customer?' or 'Top products?')..."
+              placeholder="Ask a database question (e.g. 'Who is our best customer?' or 'Top products?')..."
               autocomplete="off"
             />
-            <button type="submit" id="sendBtn" class="btn-pixel-send">
-              SEND &rarr;
+            <button type="submit" id="sendBtn" class="btn-send">
+              Send &rarr;
             </button>
           </div>
         </form>
@@ -115,53 +120,53 @@
   <div class="modal-overlay" id="settingsModal" onclick="toggleSettingsModal()">
     <div class="modal-card settings-card" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <h3 class="pixel-font">&lt; DATABASE_SETTINGS &gt;</h3>
+        <h3>Database Settings</h3>
         <button class="btn-close" onclick="toggleSettingsModal()">&times;</button>
       </div>
       <div class="modal-body">
         <div class="settings-grid">
           <div class="form-group">
-            <label class="pixel-label">DB TYPE</label>
-            <select id="dbType" disabled class="pixel-input">
+            <label>Database Type</label>
+            <select id="dbType" disabled>
               <option value="postgresql">PostgreSQL</option>
             </select>
           </div>
           <div class="form-group">
-            <label class="pixel-label">HOST</label>
-            <input type="text" id="dbHost" value="localhost" placeholder="localhost" class="pixel-input" />
+            <label>Host</label>
+            <input type="text" id="dbHost" value="localhost" placeholder="localhost" />
           </div>
           <div class="form-group">
-            <label class="pixel-label">PORT</label>
-            <input type="number" id="dbPort" value="5432" placeholder="5432" class="pixel-input" />
+            <label>Port</label>
+            <input type="number" id="dbPort" value="5432" placeholder="5432" />
           </div>
           <div class="form-group">
-            <label class="pixel-label">DATABASE NAME</label>
-            <input type="text" id="dbName" placeholder="company_db" class="pixel-input" />
+            <label>Database Name</label>
+            <input type="text" id="dbName" placeholder="company_db" />
           </div>
           <div class="form-group">
-            <label class="pixel-label">USERNAME</label>
-            <input type="text" id="dbUser" placeholder="readonly_user" class="pixel-input" />
+            <label>Username</label>
+            <input type="text" id="dbUser" placeholder="readonly_user" />
           </div>
           <div class="form-group">
-            <label class="pixel-label">PASSWORD</label>
-            <input type="password" id="dbPassword" placeholder="••••••••" class="pixel-input" />
+            <label>Password</label>
+            <input type="password" id="dbPassword" placeholder="••••••••" />
           </div>
         </div>
 
-        <div id="dbFeedback" class="feedback-msg pixel-font"></div>
+        <div id="dbFeedback" class="feedback-msg"></div>
 
         <div class="modal-btn-row">
-          <button class="btn-pixel btn-secondary" onclick="testDBConnection()">TEST DB</button>
-          <button class="btn-pixel btn-primary" onclick="connectCustomDB()">CONNECT</button>
-          <button class="btn-pixel btn-danger" onclick="disconnectDB()">DISCONNECT</button>
+          <button class="btn-secondary" onclick="testDBConnection()">Test Connection</button>
+          <button class="btn-primary" onclick="connectCustomDB()">Connect Database</button>
+          <button class="btn-danger" onclick="disconnectDB()">Disconnect</button>
         </div>
 
-        <div class="security-banner pixel-box">
-          <h4 class="pixel-font yellow-text">[ SECURITY PROTOCOLS ]</h4>
+        <div class="security-banner">
+          <h4>🔒 Security & Query Policy</h4>
           <ul>
-            <li>• <strong>READ-ONLY MODE:</strong> Only `SELECT` statements allowed. Rejects `INSERT`, `UPDATE`, `DELETE`, `DROP`.</li>
-            <li>• <strong>MAX RESULT CAP:</strong> Hard limit capped at 100 rows.</li>
-            <li>• <strong>MEMORY SECURITY:</strong> Credentials stored in server session memory only.</li>
+            <li>• <strong>Read-Only Mode:</strong> Only `SELECT` queries allowed. Rejects `INSERT`, `UPDATE`, `DELETE`, `DROP`.</li>
+            <li>• <strong>Max Result Limit:</strong> Capped at 100 rows per query.</li>
+            <li>• <strong>Credential Security:</strong> Passwords held in server session memory only.</li>
           </ul>
         </div>
       </div>
@@ -172,11 +177,11 @@
   <div class="modal-overlay" id="schemaModal" onclick="toggleSchemaModal()">
     <div class="modal-card" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <h3 class="pixel-font" id="schemaModalTitle">&lt; SCHEMA_INSPECTOR &gt;</h3>
+        <h3 id="schemaModalTitle">Database Schema Inspector</h3>
         <button class="btn-close" onclick="toggleSchemaModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <pre id="schemaText" class="crt-terminal">Loading schema metadata...</pre>
+        <pre id="schemaText" class="code-terminal">Loading schema metadata...</pre>
       </div>
     </div>
   </div>
